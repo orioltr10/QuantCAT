@@ -1,4 +1,4 @@
-import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js';
+﻿import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js';
 import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js';
 
 // Global App State
@@ -581,7 +581,7 @@ function renderStatsView() {
 }
 
 // Inicialitzar l'aplicació quan el DOM estigui carregat
-document.addEventListener('DOMContentLoaded', () => {
+const initApp = () => {
     render();
     
     // Suport per teclat (Enter per avançar a pantalles on no hi ha input)
