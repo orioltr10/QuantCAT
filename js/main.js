@@ -1,6 +1,6 @@
 ﻿console.log('QuantCAT JS STARTING');
-import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js?v=4b494c37';
-import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js?v=4b494c37';
+import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js?v=3694d85e';
+import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js?v=3694d85e';
 
 // Global App State
 const appState = {

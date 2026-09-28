@@ -1801,7 +1801,8 @@ export const questions = [
         unit: "passatgers/habitant/any",
         explanation: "Any: 2024. Font: air+pop",
         category: "General",
-        difficulty: "dif\u00EDcil",
+        difficulty: "dif\u00EDcil"
+    },
     {
         id: "q_fermi_1",
         text: "Quants Camp Nous caben dins la superfície del terme municipal de Puigcerdà?",
