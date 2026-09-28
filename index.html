@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
@@ -142,10 +142,11 @@
     
     <!-- Footer -->
     <footer class="w-full max-w-2xl mt-12 text-center text-sm text-slate-400 fade-in">
-        <p>Inspirat en jocs d'estimaci� • Dissenyat per a usuaris de Catalunya</p>
+        <p>Inspirat en jocs d'estimaci� • Dissenyat per a usuaris de Catalunya</p>
     </footer>
 
     <!-- Application Scripts -->
-    <script type="module" src="./js/main.js"></script>
+    <script>window.onerror = function(msg, url, lineNo, columnNo, error) { document.getElementById('app-container').innerHTML = '<div style="color:red; padding:20px; font-weight:bold;">' + msg + ' at ' + url + ':' + lineNo + '</div>'; return false; };</script>
+    <script type="module" src="./js/main.js?v=d9b148d6"></script>
 </body>
 </html>
