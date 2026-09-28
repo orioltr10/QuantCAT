@@ -606,7 +606,13 @@ const initApp = () => {
             }
         }
     });
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 window.app.shareResult = () => {
     const text = `🧠 He aconseguit ${appState.score} punts a QuantCAT!\nPregunta: ${appState.currentQuestion.text}\nJuga-hi tu també!`;
