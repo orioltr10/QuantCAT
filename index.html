@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantCAT - Joc d'Estimació</title>
+    <!-- Tailwind CSS (CDN for development) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                            dark: '#0f172a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        
+        .btn-primary {
+            background-color: #16a34a;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #15803d;
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .slide-up {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Input styling */
+        .number-input {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: -0.02em;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid #cbd5e1;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .number-input:focus {
+            border-bottom-color: #16a34a;
+        }
+        .number-input::placeholder {
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+        
+        /* Score bar */
+        .score-bar-container {
+            width: 100%;
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .score-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444 0%, #eab308 50%, #22c55e 100%);
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pt-8 pb-12 px-4 sm:px-6">
+    
+    <!-- Header -->
+    <header class="w-full max-w-2xl flex justify-between items-center mb-8 fade-in">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('home')">
+            <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-lg">
+                Q
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight">QuantCAT</h1>
+        </div>
+        <div class="flex items-center gap-4 text-slate-600">
+            <button class="hover:text-brand-600 transition-colors flex items-center gap-2" onclick="app.showStats()">
+                <i class="fa-solid fa-chart-simple"></i>
+                <span class="hidden sm:inline font-medium">Estadístiques</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main id="app-container" class="w-full max-w-2xl w-full flex-grow flex flex-col">
+        <!-- Content injected via JS -->
+    </main>
+    
+    <!-- Footer -->
+    <footer class="w-full max-w-2xl mt-12 text-center text-sm text-slate-400 fade-in">
+        <p>Inspirat en jocs d'estimaci� • Dissenyat per a usuaris de Catalunya</p>
+    </footer>
+
+    <!-- Application Scripts -->
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
