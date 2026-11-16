@@ -1,6 +1,8 @@
-﻿/**
+/**
  * Arxiu de preguntes (Questions File)
  */
+import { questionsKids } from './questionsKids.js';
+import { questionsYouth } from './questionsYouth.js';
 
 export const questions = [
     {
@@ -3551,15 +3553,19 @@ export const questions = [
     }
 ];
 
-export function getRandomQuestion(excludeIds = []) {
-    const available = questions.filter(q => !excludeIds.includes(q.id));
+export function getRandomQuestion(excludeIds = [], mode = 'practice') {
+    let sourcePool = questions;
+    if (mode === 'kids') sourcePool = questionsKids;
+    else if (mode === 'youth') sourcePool = questionsYouth;
+
+    const available = sourcePool.filter(q => !excludeIds.includes(q.id));
     if (available.length === 0) return null;
     const randomIndex = Math.floor(Math.random() * available.length);
     return available[randomIndex];
 }
 
 export function getQuestionById(id) {
-    return questions.find(q => q.id === id);
+    return questions.find(q => q.id === id) || questionsKids.find(q => q.id === id) || questionsYouth.find(q => q.id === id);
 }
 
 export function getDailyQuestions(randomFunc, count = 5) {

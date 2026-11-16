@@ -1,6 +1,6 @@
-﻿console.log('QuantCAT JS STARTING');
-import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js?v=3694d85e';
-import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js?v=3694d85e';
+console.log('QuantCAT JS STARTING');
+import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js?v=kids_youth_v1';
+import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js?v=kids_youth_v1';
 
 // Global App State
 const appState = {
@@ -55,15 +55,15 @@ window.app = {
         window.app.navigate('game');
     },
     
-    startGame: () => {
-        appState.mode = 'practice';
+    startGame: (selectedMode = 'practice') => {
+        appState.mode = selectedMode;
         // Recuperar estat per no repetir preguntes si és possible
-        const question = getRandomQuestion(appState.playedQuestionIds);
+        const question = getRandomQuestion(appState.playedQuestionIds, selectedMode);
         
         if (!question) {
-            // Si ja ha jugat totes, resetejar l'historial
+            // Si ja ha jugat totes les d'aquest mode, resetejar l'historial
             appState.playedQuestionIds = [];
-            const newQ = getRandomQuestion([]);
+            const newQ = getRandomQuestion([], selectedMode);
             appState.currentQuestion = newQ;
         } else {
             appState.currentQuestion = question;
@@ -172,7 +172,7 @@ window.app = {
         }
         
         appState.userGuess = guess;
-        appState.score = calculateScore(guess, appState.currentQuestion.answer);
+        appState.score = calculateScore(guess, appState.currentQuestion.answer, appState.mode);
         
         // Actualitzar estadístiques globals
         appState.stats.gamesPlayed++;
@@ -206,7 +206,7 @@ window.app = {
                 window.app.navigate('daily_summary');
             }
         } else {
-            window.app.startGame();
+            window.app.startGame(appState.mode);
         }
     },
     
@@ -301,9 +301,18 @@ function renderHomeView() {
                        </button>`
                 }
                 
-                <button onclick="app.startGame()" class="btn-primary w-full py-4 rounded-xl text-lg font-bold shadow-md shadow-brand-600/20">
+                <button onclick="app.startGame('practice')" class="btn-primary w-full py-4 rounded-xl text-lg font-bold shadow-md shadow-brand-600/20">
                     <i class="fa-solid fa-dumbbell mr-2"></i> Pràctica Lliure
                 </button>
+                
+                <div class="grid grid-cols-2 gap-3 w-full">
+                    <button onclick="app.startGame('kids')" class="w-full py-3.5 rounded-xl text-base font-bold bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-child-reaching"></i> Nens
+                    </button>
+                    <button onclick="app.startGame('youth')" class="w-full py-3.5 rounded-xl text-base font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-md shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-graduation-cap"></i> Joves
+                    </button>
+                </div>
             </div>
             
             <div class="mt-10 pt-6 border-t border-slate-100 max-w-xs w-full text-center fade-in" style="animation-delay: 0.3s">
@@ -316,7 +325,12 @@ function renderHomeView() {
 
 function renderGameView() {
     const q = appState.currentQuestion;
-    const progressText = appState.mode === 'daily' ? `Pregunta ${appState.dailyIndex + 1}/5` : 'Pràctica';
+    let progressText = 'Pràctica';
+    if (appState.mode === 'daily') progressText = `Pregunta ${appState.dailyIndex + 1}/5`;
+    else if (appState.mode === 'kids') progressText = '🧒 Mode Nens';
+    else if (appState.mode === 'youth') progressText = '🎓 Mode Joves';
+    
+    const placeholderText = appState.mode === 'kids' ? 'Ex: 24' : (appState.mode === 'youth' ? 'Ex: 120 o 1500' : 'Ex: 10000 o 1e4');
     
     return `
         <div class="flex-grow flex flex-col slide-up p-6 md:p-8 glass-panel rounded-2xl w-full relative overflow-hidden">
@@ -338,7 +352,7 @@ function renderGameView() {
                         inputmode="numeric"
                         id="guess-input" 
                         class="number-input py-4 text-slate-800" 
-                        placeholder="Ex: 10000 o 1e4"
+                        placeholder="${placeholderText}"
                         autocomplete="off"
                         oninput="app.formatInput(event)"
                     >

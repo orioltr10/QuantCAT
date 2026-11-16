@@ -3,9 +3,17 @@
  */
 
 // Calcula la puntuació basada en la diferència d'ordres de magnitud (escala logarítmica)
-export function calculateScore(guess, answer) {
+export function calculateScore(guess, answer, mode = 'practice') {
     if (guess === answer) return 100;
     
+    // Per al mode Nens (o preguntes de càlcul petit en Joves on answer <= 500), utilitzem percentatge d'error relatiu
+    if (mode === 'kids' || (mode === 'youth' && answer <= 500)) {
+        const safeAnswer = Math.max(Math.abs(answer), 0.000001);
+        const relativeError = Math.abs(guess - answer) / safeAnswer;
+        if (relativeError >= 1) return 0;
+        return Math.max(0, Math.round((1 - relativeError) * 100));
+    }
+
     // Evitar logaritme de zero o nombres negatius (tot i que en aquest joc normalment són positius)
     const safeGuess = Math.max(Math.abs(guess), 0.000001);
     const safeAnswer = Math.max(Math.abs(answer), 0.000001);
