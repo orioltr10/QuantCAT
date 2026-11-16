@@ -1,11 +1,11 @@
 console.log('QuantCAT JS STARTING');
-import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js?v=kids_youth_v1';
-import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js?v=kids_youth_v1';
+import { questions, getRandomQuestion, getDailyQuestions } from './data/questions.js?v=kids_youth_v2';
+import { calculateScore, formatNumber, storage, generateMockDistribution, getDailySeed } from './utils/gameLogic.js?v=kids_youth_v2';
 
 // Global App State
 const appState = {
     currentView: 'home',
-    mode: 'practice', // 'practice' o 'daily'
+    mode: 'practice', // 'practice', 'daily', 'kids', 'youth'
     currentQuestion: null,
     userGuess: null,
     score: null,
@@ -17,6 +17,10 @@ const appState = {
     dailyIndex: 0,
     dailyTotalScore: 0,
     
+    // Estat de partida de 5 preguntes (Nens i Joves)
+    roundIndex: 0,
+    roundTotalScore: 0,
+    
     // Estat de la calculadora
     calcOpen: false,
     calcExpression: ''
@@ -24,6 +28,20 @@ const appState = {
 
 // Elements
 const appContainer = document.getElementById('app-container');
+
+function loadNextRandomQuestion(selectedMode) {
+    const question = getRandomQuestion(appState.playedQuestionIds, selectedMode);
+    if (!question) {
+        // Si ja ha jugat totes les d'aquest mode, resetejar l'historial
+        appState.playedQuestionIds = [];
+        appState.currentQuestion = getRandomQuestion([], selectedMode);
+    } else {
+        appState.currentQuestion = question;
+    }
+    appState.userGuess = null;
+    appState.score = null;
+    appState.calcOpen = false;
+}
 
 // Main Application Controller
 window.app = {
@@ -57,21 +75,11 @@ window.app = {
     
     startGame: (selectedMode = 'practice') => {
         appState.mode = selectedMode;
-        // Recuperar estat per no repetir preguntes si és possible
-        const question = getRandomQuestion(appState.playedQuestionIds, selectedMode);
-        
-        if (!question) {
-            // Si ja ha jugat totes les d'aquest mode, resetejar l'historial
-            appState.playedQuestionIds = [];
-            const newQ = getRandomQuestion([], selectedMode);
-            appState.currentQuestion = newQ;
-        } else {
-            appState.currentQuestion = question;
+        if (selectedMode === 'kids' || selectedMode === 'youth') {
+            appState.roundIndex = 0;
+            appState.roundTotalScore = 0;
         }
-        
-        appState.userGuess = null;
-        appState.score = null;
-        appState.calcOpen = false;
+        loadNextRandomQuestion(selectedMode);
         window.app.navigate('game');
     },
     
@@ -183,7 +191,9 @@ window.app = {
         
         if (appState.mode === 'daily') {
             appState.dailyTotalScore += appState.score;
-            // Si és l'última pregunta del repte diari... (ho gestionarem a la vista del Resultat)
+        } else if (appState.mode === 'kids' || appState.mode === 'youth') {
+            appState.roundTotalScore += appState.score;
+            appState.playedQuestionIds.push(appState.currentQuestion.id);
         } else {
             appState.playedQuestionIds.push(appState.currentQuestion.id);
         }
@@ -204,6 +214,14 @@ window.app = {
                 const todayStr = new Date().toISOString().split('T')[0];
                 localStorage.setItem('quantcat_last_daily', todayStr);
                 window.app.navigate('daily_summary');
+            }
+        } else if (appState.mode === 'kids' || appState.mode === 'youth') {
+            appState.roundIndex++;
+            if (appState.roundIndex < 5) {
+                loadNextRandomQuestion(appState.mode);
+                window.app.navigate('game');
+            } else {
+                window.app.navigate('round_summary');
             }
         } else {
             window.app.startGame(appState.mode);
@@ -243,6 +261,9 @@ function render() {
             break;
         case 'daily_summary':
             appContainer.innerHTML = renderDailySummaryView();
+            break;
+        case 'round_summary':
+            appContainer.innerHTML = renderRoundSummaryView();
             break;
     }
 }
@@ -327,8 +348,8 @@ function renderGameView() {
     const q = appState.currentQuestion;
     let progressText = 'Pràctica';
     if (appState.mode === 'daily') progressText = `Pregunta ${appState.dailyIndex + 1}/5`;
-    else if (appState.mode === 'kids') progressText = '🧒 Mode Nens';
-    else if (appState.mode === 'youth') progressText = '🎓 Mode Joves';
+    else if (appState.mode === 'kids') progressText = `🧒 Nens · ${appState.roundIndex + 1}/5`;
+    else if (appState.mode === 'youth') progressText = `🎓 Joves · ${appState.roundIndex + 1}/5`;
     
     const placeholderText = appState.mode === 'kids' ? 'Ex: 24' : (appState.mode === 'youth' ? 'Ex: 120 o 1500' : 'Ex: 10000 o 1e4');
     
@@ -425,7 +446,12 @@ function renderResultView() {
     else if (score < 70) message = 'No està malament';
     else if (score < 95) message = 'Molt a prop!';
     
-    const nextText = (appState.mode === 'daily' && appState.dailyIndex === 4) ? 'Veure Resum' : 'Següent Pregunta';
+    let nextText = 'Següent Pregunta';
+    if (appState.mode === 'daily' && appState.dailyIndex === 4) {
+        nextText = 'Veure Resum';
+    } else if ((appState.mode === 'kids' || appState.mode === 'youth') && appState.roundIndex === 4) {
+        nextText = 'Veure Puntuació Final';
+    }
 
     return `
         <div class="flex-grow flex flex-col slide-up p-6 md:p-8 glass-panel rounded-2xl w-full">
@@ -564,6 +590,48 @@ function renderDailySummaryView() {
     `;
 }
 
+function renderRoundSummaryView() {
+    const total = appState.roundTotalScore;
+    const isKids = appState.mode === 'kids';
+    const modeTitle = isKids ? '🧒 Partida de Nens' : '🎓 Partida de Joves';
+    
+    let rank = isKids ? "Bon intent! Segueix practicant 💪" : "Aprenent";
+    if (total >= 420) rank = isKids ? "🌟 Supergeni de Catalunya!" : "🏆 Mestre de l'Estimació!";
+    else if (total >= 320) rank = isKids ? "🚀 Crack dels números!" : "🎯 Molt bona punteria!";
+    else if (total >= 200) rank = isKids ? "👍 Vas per molt bon camí!" : "👍 Coneixedor";
+
+    const boxClass = isKids ? 'bg-sky-50 border-sky-200' : 'bg-indigo-50 border-indigo-200';
+    const labelClass = isKids ? 'text-sky-700' : 'text-indigo-700';
+    const scoreClass = isKids ? 'text-sky-600' : 'text-indigo-600';
+    const rankClass = isKids ? 'text-sky-800' : 'text-indigo-800';
+    const replayBtnClass = isKids 
+        ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-sky-500/20' 
+        : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-indigo-500/20';
+
+    return `
+        <div class="flex-grow flex flex-col slide-up p-6 md:p-8 glass-panel rounded-2xl w-full text-center">
+            <h2 class="text-3xl font-bold mb-2">Partida Completada!</h2>
+            <p class="text-slate-600 mb-8">${modeTitle} (5 preguntes)</p>
+            
+            <div class="${boxClass} p-6 rounded-2xl border mb-8">
+                <div class="text-sm ${labelClass} uppercase tracking-wider font-bold mb-2">Puntuació de la Partida</div>
+                <div class="text-5xl font-black ${scoreClass} mb-2">${total} <span class="text-xl">/ 500</span></div>
+                <div class="text-lg font-medium ${rankClass}">${rank}</div>
+            </div>
+            
+            <button onclick="app.startGame('${appState.mode}')" class="w-full py-4 rounded-xl text-lg font-bold shadow-md transition-all transform hover:-translate-y-0.5 mb-3 ${replayBtnClass}">
+                <i class="fa-solid fa-rotate-right mr-2"></i> Jugar una altra partida
+            </button>
+            <button onclick="app.shareRoundResult()" class="w-full py-3.5 rounded-xl text-base font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors mb-3">
+                <i class="fa-solid fa-share-nodes mr-2"></i> Compartir Puntuació
+            </button>
+            <button onclick="app.navigate('home')" class="w-full py-3.5 rounded-xl text-base font-bold text-slate-500 hover:text-slate-700 transition-colors">
+                Tornar a l'inici
+            </button>
+        </div>
+    `;
+}
+
 function renderStatsView() {
     const stats = appState.stats;
     return `
@@ -615,6 +683,9 @@ const initApp = () => {
             } else if (appState.currentView === 'result') {
                 e.preventDefault();
                 window.app.nextQuestion();
+            } else if (appState.currentView === 'round_summary') {
+                e.preventDefault();
+                window.app.startGame(appState.mode);
             } else if (appState.currentView === 'daily_summary' || appState.currentView === 'stats') {
                 e.preventDefault();
                 window.app.navigate('home');
@@ -638,6 +709,12 @@ window.app.shareDailyResult = () => {
     const todayStr = new Date().toLocaleDateString('ca-ES');
     const text = `📅 Repte Diari QuantCAT (${todayStr})\nHe aconseguit ${appState.dailyTotalScore}/500 punts!\nEns mesurem? 🐈`;
     triggerShare(text, 'share-btn'); // Fallback in cas ID
+};
+
+window.app.shareRoundResult = () => {
+    const label = appState.mode === 'kids' ? '🧒 Mode Nens' : '🎓 Mode Joves';
+    const text = `${label} a QuantCAT!\nHe aconseguit ${appState.roundTotalScore}/500 punts en 5 preguntes!\nJuga-hi tu també!`;
+    triggerShare(text, 'share-btn');
 };
 
 function triggerShare(text, btnId) {
